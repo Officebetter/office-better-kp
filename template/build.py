@@ -23,7 +23,11 @@ for f in glob.glob(os.path.join(REPO,'products','*')):
 
 mascot = b64(os.path.join(REPO,'brand','mascot-elf.png'))
 logo_svg = b64(os.path.join(REPO,'brand','logo.svg'))
-fdir = os.environ.get('KP_FONTS','/tmp/fnt/package/files')  # npm pack @fontsource/montserrat
+fdir = os.environ.get('KP_FONTS','/tmp/fnt/package/files')
+if not os.path.isdir(fdir):  # шрифт Montserrat завантажується автоматично при першому запуску
+    import subprocess
+    os.makedirs('/tmp/fnt', exist_ok=True)
+    subprocess.run('npm pack @fontsource/montserrat@5.0.19 -q >/dev/null 2>&1 && tar xzf fontsource-montserrat-5.0.19.tgz', shell=True, cwd='/tmp/fnt', check=True)
 fonts = ''
 for w in (400,500,600,700,800,900):
     for sub, rng in (('cyrillic','U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116'),('latin','U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD')):
