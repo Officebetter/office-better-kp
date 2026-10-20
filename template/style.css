@@ -1,0 +1,90 @@
+@page { size: A4 landscape; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #e9eaf3; }
+body { font-family: 'Montserrat', Arial, sans-serif; color: #07002C; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.slide { width: 297mm; height: 210mm; padding: 15mm 11mm 8mm; background: #fff; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; margin: 8mm auto; box-shadow: 0 4px 24px rgba(7,0,44,.12); }
+@media print { html, body { background: #fff; } .slide { margin: 0; box-shadow: none; page-break-after: always; break-after: page; } .slide:last-child { page-break-after: auto; break-after: auto; } }
+
+.head { display: flex; align-items: center; justify-content: space-between; gap: 10mm; padding-bottom: 4mm; border-bottom: 1.2mm solid #ccf2ff; }
+.logo { height: 13mm; width: auto; display: block; }
+.garland { position: absolute; left: 0; top: 0; width: 297mm; height: 16mm; z-index: 3; pointer-events: none; }
+.snow { position: absolute; inset: 0; width: 297mm; height: 210mm; z-index: 0; pointer-events: none; }
+.baubles { position: absolute; left: 0; top: 0; width: 297mm; height: 40mm; z-index: 2; pointer-events: none; }
+.slide > *:not(.garland):not(.snow):not(.baubles) { position: relative; z-index: 1; }
+.logo span { font-weight: 900; font-size: 15pt; line-height: .92; letter-spacing: -.3pt; color: #07002C; }
+.logo .chk { width: 10mm; height: 10mm; margin-bottom: -1mm; }
+.hr { text-align: right; } .hr b { display: block; font-size: 13pt; font-weight: 800; color: #2f2987; } .hr span { font-size: 9pt; color: #5f6280; }
+.ht { flex: 1; text-align: right; } .ht small { display: block; font-size: 8.5pt; font-weight: 700; color: #6259ff; text-transform: uppercase; letter-spacing: .6pt; }
+.ht b { display: block; font-size: 17pt; font-weight: 800; color: #2f2987; line-height: 1.15; } .ht span { font-size: 9pt; color: #5f6280; }
+
+/* Титульний */
+.s1body { flex: 1; display: grid; grid-template-columns: 78mm 1fr; gap: 8mm; padding-top: 6mm; min-height: 0; }
+.s1left { position: relative; display: flex; flex-direction: column; }
+.kicker { font-size: 8.5pt; font-weight: 700; color: #b82266; margin-bottom: 2.5mm; }
+h1 { font-size: 21pt; line-height: 1.12; font-weight: 900; color: #2f2987; margin-bottom: 5mm; }
+.conds { display: grid; grid-template-columns: 1fr; gap: 2mm; margin-bottom: 4mm; }
+.conds div { background: #f3f4fb; border-radius: 3mm; padding: 2mm 3.5mm; display: flex; justify-content: space-between; align-items: baseline; }
+.conds small { font-size: 8.5pt; color: #5f6280; } .conds b { font-size: 10.5pt; font-weight: 800; }
+.lead { font-size: 9pt; line-height: 1.45; color: #33365a; max-width: 62mm; }
+.mascot { position: absolute; left: 50%; transform: translateX(-50%); bottom: 3mm; height: 56mm; }
+
+.vcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4.5mm; min-height: 0; }
+.vcard { border: .5mm solid #e2e4f0; border-radius: 4mm; padding: 4.5mm 4.5mm 4mm; display: flex; flex-direction: column; background: #fff; }
+.vcard:nth-child(1) { border-top: 2mm solid #6259ff; } .vcard:nth-child(2) { border-top: 2mm solid #b82266; } .vcard:nth-child(3) { border-top: 2mm solid #2f2987; }
+.vnum { font-size: 8pt; font-weight: 700; color: #6259ff; text-transform: uppercase; letter-spacing: .6pt; }
+.vcard h3 { font-size: 14pt; font-weight: 800; color: #07002C; margin: 1mm 0 1.5mm; }
+.vtag { font-size: 8.5pt; line-height: 1.4; color: #4a4d6a; min-height: 12mm; }
+.minis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5mm; margin: 2.5mm 0 2.5mm; }
+.vlist { list-style: none; font-size: 7.6pt; line-height: 1.3; color: #33365a; }
+.vlist li { display: flex; justify-content: space-between; gap: 2mm; padding: .55mm 0; border-bottom: .2mm dashed #e2e4f0; }
+.vlist em { font-style: normal; color: #9497b3; white-space: nowrap; }
+.mini { aspect-ratio: 1; border-radius: 2.5mm; background: #fff; border: .3mm solid #eceef6; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.mini img { width: 100%; height: 100%; object-fit: contain; }
+.mini.noph, .ph.noph { background: #ccf2ff; border-color: #ccf2ff; } .noph span { font-size: 6pt; letter-spacing: -.2pt; overflow-wrap: anywhere; font-weight: 700; color: #2f2987; text-align: center; padding: 1mm; }
+.mini.more { background: #2f2987; color: #ccf2ff; font-weight: 800; font-size: 11pt; border: 0; }
+.vmeta { font-size: 8pt; color: #5f6280; margin-top: auto; padding-top: 2mm; }
+.vprice { display: flex; align-items: baseline; gap: 2mm; margin-top: 2mm; } .vprice b { font-size: 19pt; font-weight: 900; color: #2f2987; } .vprice small { font-size: 8.5pt; color: #5f6280; }
+.vtotal { font-size: 9pt; font-weight: 700; color: #07002C; background: #dffff0; border-radius: 2mm; padding: 1.5mm 2.5mm; margin-top: 1.5mm; }
+
+/* Специфікація */
+.spec { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+.spec th { font-size: 7.5pt; font-weight: 700; color: #5f6280; text-align: left; text-transform: uppercase; letter-spacing: .4pt; padding: 0 2mm 2mm; border-bottom: .4mm solid #e2e4f0; }
+.spec td { padding: 1.2mm 2mm; border-bottom: .3mm solid #eef0f7; vertical-align: middle; font-size: 8.5pt; }
+.spec .n { width: 7mm; color: #9497b3; font-weight: 700; }
+.ph { width: 14mm; height: 14mm; border-radius: 2.5mm; border: .3mm solid #eceef6; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fff; }
+.ph img { width: 100%; height: 100%; object-fit: contain; }
+.spec .nm { width: 62mm; } .spec .nm b { display: block; font-size: 9.5pt; font-weight: 700; line-height: 1.25; } .spec .nm small { font-size: 7.5pt; color: #5f6280; }
+.spec .pk { width: 22mm; font-weight: 600; white-space: nowrap; }
+.spec .ds { line-height: 1.35; color: #33365a; } .spec .ds small { display: block; font-size: 7.5pt; color: #6259ff; font-weight: 600; margin-top: .6mm; }
+.spec .pr { width: 22mm; text-align: right; font-weight: 800; font-size: 10.5pt; color: #2f2987; white-space: nowrap; }
+.spec th.pr { font-size: 7.5pt; color: #5f6280; font-weight: 700; }
+.spec.dense td { padding: .8mm 2mm; } .spec.dense .ph { width: 11.5mm; height: 11.5mm; } .spec.dense .ds { font-size: 8pt; line-height: 1.3; }
+
+/* Підвал */
+.foot { margin-top: auto; display: flex; align-items: stretch; gap: 5mm; padding-top: 3.5mm; border-top: .4mm solid #e2e4f0; }
+.perks { list-style: none; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1mm; }
+.perks li { font-size: 8pt; color: #33365a; padding-left: 4.5mm; position: relative; }
+.perks li::before { content: ""; position: absolute; left: 0; top: .9mm; width: 2.4mm; height: 1.3mm; border-left: .6mm solid #6259ff; border-bottom: .6mm solid #6259ff; transform: rotate(-45deg); }
+.ftot { display: flex; gap: 3mm; } .ftot div { background: #2f2987; color: #fff; border-radius: 3mm; padding: 2mm 4mm; display: flex; flex-direction: column; justify-content: center; }
+.ftot small { font-size: 7.5pt; color: #ccf2ff; } .ftot b { font-size: 13pt; font-weight: 900; white-space: nowrap; }
+.ftot div:last-child { background: #ccf2ff; color: #07002C; } .ftot div:last-child small { color: #2f2987; }
+.mgr { display: flex; flex-direction: column; justify-content: center; text-align: right; font-size: 8pt; color: #33365a; line-height: 1.35; }
+.mgr small { font-size: 7pt; color: #9497b3; text-transform: uppercase; letter-spacing: .5pt; } .mgr b { font-size: 10pt; font-weight: 800; color: #07002C; }
+
+.spec.dense .noph span { font-size: 5.4pt; }
+
+/* Специфікація карткам: 2 колонки, великі фото */
+.pgrid { flex: none; display: grid; align-content: start; grid-template-columns: 1fr 1fr; gap: 3mm 4mm; margin: 4mm 0 3.5mm; }
+.pc { min-height: 0; height: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 3.5mm; align-items: center; border: .35mm solid #eceef6; border-radius: 3.5mm; padding: 2mm 3.5mm 2mm 2mm; background: #fff; overflow: hidden; }
+.pcph { position: relative; width: var(--ph); height: var(--ph); }
+.big { width: 100%; height: 100%; border-radius: 2.5mm; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fff; }
+.big img { width: 100%; height: 100%; object-fit: contain; }
+.big.noph { background: #ccf2ff; } .big.noph span { font-size: 9pt; font-weight: 700; color: #2f2987; }
+.pcn { position: absolute; top: -.5mm; left: -.5mm; width: 5mm; height: 5mm; border-radius: 50%; background: #2f2987; color: #fff; font-size: 7pt; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.pci { min-width: 0; } .pci b { display: block; font-size: 10pt; font-weight: 800; line-height: 1.2; }
+.pcm { font-size: 7.8pt; color: #5f6280; margin: .6mm 0 1mm; font-weight: 600; }
+.pci p { font-size: 7.8pt; line-height: 1.32; color: #33365a; }
+.pci small { display: block; font-size: 7.2pt; color: #6259ff; font-weight: 600; margin-top: .8mm; }
+.pcp { align-self: start; text-align: right; font-size: 13pt; font-weight: 900; color: #2f2987; white-space: nowrap; padding-top: 1mm; }
+.pcp small { display: block; font-size: 7pt; font-weight: 600; color: #9497b3; }
