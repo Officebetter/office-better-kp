@@ -2,6 +2,12 @@ import sys, base64, io, os, glob, re
 HERE=os.path.dirname(os.path.abspath(__file__)); REPO=os.path.dirname(HERE)
 sys.path.insert(0,HERE)
 from data import *  # дані конкретної КП: data.py (див. data_example.py)
+import data as _d, datetime
+KIDS = getattr(_d, 'KIDS', [])          # [(код, назва, вага, склад, кількість, ціна за шт), ...]
+VARIANTS = getattr(_d, 'VARIANTS', [])
+QTY = getattr(_d, 'QTY', 0)
+BUDGET = getattr(_d, 'BUDGET', None)
+KP_DATE = getattr(_d, 'KP_DATE', datetime.date.today().strftime('%d.%m.%Y'))
 from PIL import Image, ImageChops
 
 def b64(path): return base64.b64encode(open(path,'rb').read()).decode()
@@ -77,18 +83,23 @@ BAUBLES = ('<svg class="baubles" viewBox="0 0 297 40">' + bauble(118,14,3.4,'#b8
 
 def thumb(c, cls='ph'):
     if c in photos: return f'<div class="{cls}"><img src="data:image/jpeg;base64,{photos[c]}" alt=""></div>'
-    return f'<div class="{cls} noph"><span>{I[c][3]}</span></div>'
+    label = I[c][3] if c in I else 'Набір'
+    return f'<div class="{cls} noph"><span>{label}</span></div>'
 
 def storage_line(codes):
     t = min(I[c][8] for c in codes)
     return "Зберігання в офісі без холодильника" if t >= 20 else "Зберігати в прохолодному місці, до +18°C"
 
-def footer(codes=None, totals=None):
+def footer(codes=None, totals=None, kids=None):
     m = MANAGER
     perks = ['100% бюджету — в делікатеси, без переплати за коробку', 'Договір і документи з ПДВ']
     if codes: perks.insert(1, storage_line(codes))
+    if kids: perks = ['Від 10 шт кожного набору', 'Що більше наборів — то нижча ціна: від 30 шт −5%, від 100 шт −10%', 'Договір і документи з ПДВ']
     tot = ''
-    if totals:
+    if kids:
+        tot = f'''<div class="ftot"><div><small>Наборів</small><b>{money(kids[0])} шт</b></div>
+        <div><small>Сума</small><b>{money(kids[1])} грн</b></div></div>'''
+    elif totals:
         tot = f'''<div class="ftot"><div><small>За 1 набір</small><b>{money(totals[0])} грн</b></div>
         <div><small>За {QTY} наборів</small><b>{money(totals[1])} грн</b></div></div>'''
     return f'''<div class="foot"><ul class="perks">{''.join(f'<li>{p}</li>' for p in perks)}</ul>{tot}
@@ -99,6 +110,18 @@ for i,(name,tag,codes) in enumerate(VARIANTS,1):
     s = sum(price(c) for c in codes); V.append((i,name,tag,codes,s,s*QTY))
 
 # Слайд 1
+K_QTY = sum(k[4] for k in KIDS); K_SUM = sum(k[4]*k[5] for k in KIDS)
+conds = []
+if V:
+    conds.append(('Кількість', f'{QTY} наборів'))
+    if BUDGET: conds.append(('Бюджет на набір', f'≈ {money(BUDGET)} грн'))
+if KIDS: conds.append(('Цукеркові подарунки', f'{money(K_QTY)} шт'))
+conds.append(('Ціни', 'з ПДВ'))
+conds_html = ''.join(f'<div><small>{a}</small><b>{b}</b></div>' for a,b in conds)
+if V and KIDS: lead_html = 'Три варіанти наповнення в межах бюджету та готові цукеркові подарунки.'
+elif V: lead_html = 'Три варіанти наповнення в межах вашого бюджету. Усі позиції є на складі в потрібній кількості.'
+else: lead_html = 'Готові цукеркові подарунки для дітей ваших співробітників і партнерів. Ціна знижується зі збільшенням кількості.'
+kids_chip = ''
 cards = ''
 for i,name,tag,codes,s,t in V:
     th = ''.join(thumb(c,'mini') for c in codes[:5])
@@ -107,13 +130,18 @@ for i,name,tag,codes,s,t in V:
     cards += f'''<div class="vcard"><div class="vnum">Варіант {i}</div><h3>{name}</h3><p class="vtag">{tag}</p>
     <div class="minis">{th}{more}</div><ul class="vlist">{lst}</ul><div class="vmeta">{len(codes)} позицій · {storage_line(codes).replace('Зберігання в офісі ','').replace('Зберігати в прохолодному місці, ','')}</div>
     <div class="vprice"><b>{money(s)} грн</b><small>за набір</small></div><div class="vtotal">{money(t)} грн за {QTY} наборів</div></div>'''
-slide1 = f'''<div class="slide s1">{SNOW_TITLE}{GARLAND}{BAUBLES}<div class="head">{LOGO}<div class="hr"><b>Комерційна пропозиція</b><span>20.10.2026</span></div></div>
+if V:
+    right_html = f'<div class="vcards">{cards}</div>'
+else:
+    prev = ''.join(f'<div class="kprev">{thumb(k[0],"mini")}<span>{k[1]}</span><em>{money(k[4])} шт</em></div>' for k in KIDS[:8])
+    right_html = f'<div class="kpreview"><h3>Цукеркові подарунки</h3><div class="kprevgrid">{prev}</div><div class="vprice"><b>{money(K_SUM)} грн</b><small>за {money(K_QTY)} наборів</small></div></div>'
+slide1 = f'''<div class="slide s1">{SNOW_TITLE}{GARLAND}{BAUBLES}<div class="head">{LOGO}<div class="hr"><b>Комерційна пропозиція</b><span>{KP_DATE}</span></div></div>
 <div class="s1body"><div class="s1left"><div class="kicker">Помічники Святого Миколая від Office Better</div>
-<h1>Товари для ваших новорічних наборів</h1>
-<div class="conds"><div><small>Кількість</small><b>{QTY} наборів</b></div><div><small>Бюджет на набір</small><b>≈ 1 500 грн</b></div><div><small>Ціни</small><b>з ПДВ</b></div></div>
-<p class="lead">Три варіанти наповнення в межах вашого бюджету. Усі позиції є на складі в потрібній кількості.</p>
-<img class="mascot" src="data:image/png;base64,{mascot}" alt=""></div>
-<div class="vcards">{cards}</div></div>{footer()}</div>'''
+<h1>{'Товари для ваших новорічних наборів' if V else 'Новорічні цукеркові подарунки'}</h1>
+<div class="conds">{conds_html}</div>
+<p class="lead">{lead_html}</p>{kids_chip}
+<img class="mascot{' mascot-sm' if (V and KIDS) else ''}" src="data:image/png;base64,{mascot}" alt=""></div>
+{right_html}</div>{footer()}</div>'''
 
 slides = [slide1]
 for i,name,tag,codes,s,t in V:
@@ -130,6 +158,18 @@ for i,name,tag,codes,s,t in V:
     slides.append(f'''<div class="slide">{SNOW_SPEC}{GARLAND}<div class="head">{LOGO}<div class="ht"><small>Варіант {i}</small><b>{name}</b><span>{tag}</span></div></div>
 <div class="pgrid" style="grid-template-rows: repeat({rowsn}, {rowh:.2f}mm); --ph: {phs:.2f}mm">{cards_html}</div>
 {footer(codes,(s,t))}</div>''')
+
+# Сторінки «Цукеркові подарунки» (до 8 наборів на сторінку)
+for pg_i in range(0, len(KIDS), 8):
+    chunk = KIDS[pg_i:pg_i+8]
+    kc = ''
+    for code, nm, wt, comp, q, pr in chunk:
+        kc += f'''<div class="kc">{thumb(code,'kph')}<div class="kci"><b>{nm}</b><span class="kw">{wt}</span>
+        <p>{comp}</p></div><div class="kcp"><span>{money(q)} шт × {money(pr)} грн</span><b>{money(q*pr)} грн</b></div></div>'''
+    more = ' (продовження)' if pg_i else ''
+    slides.append(f'''<div class="slide">{SNOW_SPEC}{GARLAND}<div class="head">{LOGO}<div class="ht"><small>Додатково</small><b>Цукеркові подарунки{more}</b><span>Готові набори цукерок для дітей ваших співробітників і партнерів</span></div></div>
+<div class="kgrid{' k2' if len(chunk) <= 4 else ''}">{kc}</div>
+{footer(kids=(K_QTY, K_SUM))}</div>''')
 
 css = open(os.path.join(HERE,'style.css')).read()
 html = f'''<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>КП Office Better — товари для новорічних наборів</title>
