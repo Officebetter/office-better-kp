@@ -7,6 +7,7 @@ KIDS = getattr(_d, 'KIDS', [])          # [(код, назва, вага, скл
 VARIANTS = getattr(_d, 'VARIANTS', [])
 QTY = getattr(_d, 'QTY', 0)
 BUDGET = getattr(_d, 'BUDGET', None)
+KIDS_CHOICE = bool(getattr(_d, 'KIDS_CHOICE', False)) and len(KIDS) > 1  # True: набори — альтернативи, клієнт обере один
 KP_DATE = getattr(_d, 'KP_DATE', datetime.date.today().strftime('%d.%m.%Y'))
 from PIL import Image, ImageChops
 
@@ -15,7 +16,7 @@ def b64(path): return base64.b64encode(open(path,'rb').read()).decode()
 # фото з репозиторію: файл, що починається з коду (терпимо до зайвих символів у назві)
 photos = {}
 for f in glob.glob(os.path.join(REPO,'products','*')):
-    m = re.match(r'(NY-\d{3})', os.path.basename(f))
+    m = re.match(r'((?:NY|KID)-\d{3})', os.path.basename(f))
     if not m: continue
     im = Image.open(f).convert('RGBA')
     bg = Image.new('RGBA', im.size, (255,255,255,255)); bg.alpha_composite(im); im = bg.convert('RGB')
@@ -94,9 +95,11 @@ def footer(codes=None, totals=None, kids=None):
     m = MANAGER
     perks = ['100% бюджету — в делікатеси, без переплати за коробку', 'Договір і документи з ПДВ']
     if codes: perks.insert(1, storage_line(codes))
-    if kids: perks = ['Від 10 шт кожного набору', 'Що більше наборів — то нижча ціна: від 30 шт −5%, від 100 шт −10%', 'Договір і документи з ПДВ']
+    if kids or (KIDS and not VARIANTS): perks = ['Від 10 шт кожного набору', 'Що більше наборів — то нижча ціна: від 30 шт −5%, від 100 шт −10%', 'Договір і документи з ПДВ']
     tot = ''
-    if kids:
+    if kids and KIDS_CHOICE:
+        tot = f'''<div class="ftot"><div><small>Подарунків</small><b>{money(KIDS[0][4])} шт</b></div></div>'''
+    elif kids:
         tot = f'''<div class="ftot"><div><small>Наборів</small><b>{money(kids[0])} шт</b></div>
         <div><small>Сума</small><b>{money(kids[1])} грн</b></div></div>'''
     elif totals:
@@ -115,11 +118,15 @@ conds = []
 if V:
     conds.append(('Кількість', f'{QTY} наборів'))
     if BUDGET: conds.append(('Бюджет на набір', f'≈ {money(BUDGET)} грн'))
-if KIDS: conds.append(('Цукеркові подарунки', f'{money(K_QTY)} шт'))
+if KIDS and KIDS_CHOICE and not V:
+    conds.append(('Кількість', f'{money(KIDS[0][4])} подарунків'))
+    conds.append(('Варіантів на вибір', f'{len(KIDS)}'))
+elif KIDS: conds.append(('Цукеркові подарунки', f'{money(K_QTY)} шт'))
 conds.append(('Ціни', 'з ПДВ'))
 conds_html = ''.join(f'<div><small>{a}</small><b>{b}</b></div>' for a,b in conds)
 if V and KIDS: lead_html = 'Три варіанти наповнення в межах бюджету та готові цукеркові подарунки.'
 elif V: lead_html = 'Три варіанти наповнення в межах вашого бюджету. Усі позиції є на складі в потрібній кількості.'
+elif KIDS_CHOICE: lead_html = 'Оберіть один варіант — і всі подарунки будуть однакові. Ціни вже зі знижкою за кількість.'
 else: lead_html = 'Готові цукеркові подарунки для дітей ваших співробітників і партнерів. Ціна знижується зі збільшенням кількості.'
 kids_chip = ''
 cards = ''
@@ -133,8 +140,12 @@ for i,name,tag,codes,s,t in V:
 if V:
     right_html = f'<div class="vcards">{cards}</div>'
 else:
-    prev = ''.join(f'<div class="kprev">{thumb(k[0],"mini")}<span>{k[1]}</span><em>{money(k[4])} шт</em></div>' for k in KIDS[:8])
-    right_html = f'<div class="kpreview"><h3>Цукеркові подарунки</h3><div class="kprevgrid">{prev}</div><div class="vprice"><b>{money(K_SUM)} грн</b><small>за {money(K_QTY)} наборів</small></div></div>'
+    if KIDS_CHOICE:
+        prev = ''.join(f'<div class="kprev">{thumb(k[0],"mini")}<span><span class="kvn">Варіант {n}</span><br>{k[1]}</span><em>{money(k[5])} грн за шт</em></div>' for n,k in enumerate(KIDS[:8],1))
+        right_html = f'<div class="kpreview"><h3>Варіанти на вибір</h3><div class="kprevgrid">{prev}</div><div class="vprice"><b>від {money(min(k[5] for k in KIDS))} грн</b><small>за подарунок</small></div></div>'
+    else:
+        prev = ''.join(f'<div class="kprev">{thumb(k[0],"mini")}<span>{k[1]}</span><em>{money(k[4])} шт</em></div>' for k in KIDS[:8])
+        right_html = f'<div class="kpreview"><h3>Цукеркові подарунки</h3><div class="kprevgrid">{prev}</div><div class="vprice"><b>{money(K_SUM)} грн</b><small>за {money(K_QTY)} наборів</small></div></div>'
 slide1 = f'''<div class="slide s1">{SNOW_TITLE}{GARLAND}{BAUBLES}<div class="head">{LOGO}<div class="hr"><b>Комерційна пропозиція</b><span>{KP_DATE}</span></div></div>
 <div class="s1body"><div class="s1left"><div class="kicker">Помічники Святого Миколая від Office Better</div>
 <h1>{'Товари для ваших новорічних наборів' if V else 'Новорічні цукеркові подарунки'}</h1>
@@ -163,16 +174,17 @@ for i,name,tag,codes,s,t in V:
 for pg_i in range(0, len(KIDS), 8):
     chunk = KIDS[pg_i:pg_i+8]
     kc = ''
-    for code, nm, wt, comp, q, pr in chunk:
-        kc += f'''<div class="kc">{thumb(code,'kph')}<div class="kci"><b>{nm}</b><span class="kw">{wt}</span>
+    for n, (code, nm, wt, comp, q, pr) in enumerate(chunk, pg_i+1):
+        vn = f'<span class="kvn">Варіант {n}</span>' if KIDS_CHOICE else ''
+        kc += f'''<div class="kc">{thumb(code,'kph')}<div class="kci">{vn}<b>{nm}</b><span class="kw">{wt}</span>
         <p>{comp}</p></div><div class="kcp"><span>{money(q)} шт × {money(pr)} грн</span><b>{money(q*pr)} грн</b></div></div>'''
     more = ' (продовження)' if pg_i else ''
-    slides.append(f'''<div class="slide">{SNOW_SPEC}{GARLAND}<div class="head">{LOGO}<div class="ht"><small>Додатково</small><b>Цукеркові подарунки{more}</b><span>Готові набори цукерок для дітей ваших співробітників і партнерів</span></div></div>
+    slides.append(f'''<div class="slide">{SNOW_SPEC}{GARLAND}<div class="head">{LOGO}<div class="ht"><small>{'Додатково' if V else ('Варіанти на вибір' if KIDS_CHOICE else 'Ваша добірка')}</small><b>Цукеркові подарунки{more}</b><span>{f'Оберіть один набір. Ціна і сума — за {money(KIDS[0][4])} шт' if KIDS_CHOICE else 'Готові набори цукерок для дітей ваших співробітників і партнерів'}</span></div></div>
 <div class="kgrid{' k2' if len(chunk) <= 4 else ''}">{kc}</div>
 {footer(kids=(K_QTY, K_SUM))}</div>''')
 
 css = open(os.path.join(HERE,'style.css')).read()
 html = f'''<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>КП Office Better — товари для новорічних наборів</title>
-<style>{fonts}{css}</style></head><body>{''.join(slides)}</body></html>'''
+<style>{fonts}{css}.kvn{{display:block;font-size:7pt;font-weight:700;color:#b82266;margin-bottom:.6mm}}</style></head><body>{''.join(slides)}</body></html>'''
 open(os.environ.get('KP_OUT','/mnt/user-data/outputs/KP.html'),'w',encoding='utf-8').write(html)
 print('photos used:', sorted(photos), 'size KB', len(html)//1024)
